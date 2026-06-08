@@ -1419,13 +1419,16 @@ applyLang();
   let deferred=null;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
   const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // Only offer install on mobile/touch devices; on desktop the browser favourite/bookmark is enough.
+  const isMobile = /android|iphone|ipad|ipod|mobile|tablet/i.test(navigator.userAgent)
+    || (('ontouchstart' in window) && window.matchMedia('(max-width: 820px)').matches);
 
   function refreshLabels(){ txt.textContent=T.installText[lang]; btn.textContent=T.installBtn[lang]; }
 
-  // Android / Chrome: capture the prompt
+  // Android / Chrome: capture the prompt (mobile only)
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault(); deferred=e;
-    if(isStandalone) return;
+    if(isStandalone || !isMobile) return;
     refreshLabels(); btn.style.display=''; bar.style.display='flex';
   });
   btn.addEventListener('click',async()=>{
@@ -1433,8 +1436,8 @@ applyLang();
   });
   dismiss.addEventListener('click',()=>bar.style.display='none');
 
-  // iOS Safari: no prompt API — show instruction instead
-  if(isIos && !isStandalone){
+  // iOS Safari: no prompt API — show instruction instead (mobile only)
+  if(isIos && !isStandalone && isMobile){
     txt.textContent=T.installIos[lang]; btn.style.display='none'; bar.style.display='flex';
   }
 })();
